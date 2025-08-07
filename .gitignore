@@ -9,3 +9,4 @@ DEBUG-INSPECT
 DEBUG-PACKAGED
 sample.xml
 .yarn/*
+.env
