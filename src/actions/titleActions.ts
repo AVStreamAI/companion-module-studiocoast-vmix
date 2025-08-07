@@ -95,6 +95,10 @@ type TitleBeginAnimationOptions = {
     | 'DataChangeOut'
 }
 
+type TitleBeginAnimationVariableOptions = {
+  input: string
+  value: string
+}
 type ControlCountdownCallback = ActionCallback<'controlCountdown', ControlCountdownOptions>
 type SetCountdownCallback = ActionCallback<'setCountdown', SetCountdownOptions>
 type ChangeCountdownCallback = ActionCallback<'changeCountdown', ChangeCountdownOptions>
@@ -108,6 +112,7 @@ type SetImageVisibleCallback = ActionCallback<'setImage', SetImageVisibleOptions
 type SelectTitlePresetCallback = ActionCallback<'selectTitlePreset', SelectTitlePresetOptions>
 type TitlePresetCallback = ActionCallback<'titlePreset', TitlePresetOptions>
 type TitleBeginAnimationCallback = ActionCallback<'titleBeginAnimation', TitleBeginAnimationOptions>
+type TitleBeginAnimationVariableCallback = ActionCallback<'titleBeginAnimationVariable', TitleBeginAnimationVariableOptions>
 
 export interface TitleActions {
   controlCountdown: VMixAction<ControlCountdownCallback>
@@ -123,6 +128,7 @@ export interface TitleActions {
   selectTitlePreset: VMixAction<SelectTitlePresetCallback>
   titlePreset: VMixAction<TitlePresetCallback>
   titleBeginAnimation: VMixAction<TitleBeginAnimationCallback>
+  titleBeginAnimationVariable: VMixAction<TitleBeginAnimationVariableCallback>
 
   [key: string]: VMixAction<any>
 }
@@ -139,6 +145,7 @@ export type TitleCallbacks =
   | SelectTitlePresetCallback
   | TitlePresetCallback
   | TitleBeginAnimationCallback
+  | TitleBeginAnimationVariableCallback
 
 export const vMixTitleActions = (instance: VMixInstance, sendBasicCommand: SendBasicCommand): TitleActions => {
   return {
@@ -601,6 +608,41 @@ export const vMixTitleActions = (instance: VMixInstance, sendBasicCommand: SendB
         },
       ],
       callback: sendBasicCommand,
+    },
+
+    titleBeginAnimationVariable: {
+      name: 'Title - Begin Animation Page (Variable)',
+      description: 'Starts one of the animations states on a Title using a variable for the page/animation type',
+      options: [
+        options.input,
+        {
+          type: 'textinput',
+          label: 'Animation/Page Variable',
+          id: 'value',
+          default: '',
+          tooltip: 'Variable containing: TransitionIn, TransitionOut, Page1-Page10, Continuous, DataChangeIn, or DataChangeOut',
+          useVariables: true,
+        },
+      ],
+      callback: async (action, context) => {
+        const input = (await instance.parseOption(action.options.input, context))[instance.buttonShift.state]
+        const animationValue = (await instance.parseOption(action.options.value, context))[instance.buttonShift.state]
+        
+        // Validate the animation value
+        const validAnimations = [
+          'TransitionIn', 'TransitionOut', 'Page1', 'Page2', 'Page3', 'Page4', 'Page5',
+          'Page6', 'Page7', 'Page8', 'Page9', 'Page10', 'Continuous', 'DataChangeIn', 'DataChangeOut'
+        ]
+        
+        if (!validAnimations.includes(animationValue)) {
+          instance.log('warn', `Invalid animation value: ${animationValue}. Must be one of: ${validAnimations.join(', ')}`)
+          return
+        }
+
+        if (instance.tcp) {
+          return instance.tcp.sendCommand(`FUNCTION TitleBeginAnimation Input=${encodeURIComponent(input)}&Value=${animationValue}`)
+        }
+      },
     },
   }
 }
