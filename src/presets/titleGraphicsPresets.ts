@@ -234,6 +234,24 @@ export const getTitleGraphicsPresets = (): VMixPresetArray => {
       ],
       feedbacks: [],
     },
+    {
+      category: 'Titles & Graphics',
+      name: 'Title Animation Variable',
+      type: 'button',
+      style: {
+        text: 'Title Animation Variable',
+        size: '14',
+        color: combineRgb(255, 255, 255),
+        bgcolor: combineRgb(0, 0, 0),
+      },
+      steps: [
+        {
+          down: [{ actionId: 'titleBeginAnimationVariable', options: { input: '', value: '$(internal:custom_titlepage)' } }],
+          up: [],
+        },
+      ],
+      feedbacks: [],
+    },
   )
 
   for (let i = 1; i < 11; i++) {
